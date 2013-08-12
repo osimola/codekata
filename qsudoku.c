@@ -22,7 +22,7 @@ int bitcount(uint16_t word) {
 int lowbit(uint16_t word) {
     for (int i = 0; i < 16; i++) {
 	if ((word & 0x1) != 0)
-	    return 1;
+	    return i;
 	word >>= 1;
     }
 
@@ -51,7 +51,22 @@ void mark(grid_t* g, int x, int y, int value) {
 	(*g)[y][i] &= mask;
 	(*g)[i][x] &= mask;
     }
+
+    int x0 = 3 * (x / 3);
+    int y0 = 3 * (y / 3);
+
+    for (int dy = 0; dy < 3; dy++)
+	for (int dx = 0; dx < 3; dx++)
+	    (*g)[y0 + dy][x0 + dx] &= mask;
     (*g)[y][x] = elem;
+}
+
+void printsolution(grid_t* g) {
+    for (int y = 0; y < 9; y++) {
+	for (int x = 0; x < 9; x++)
+	    printf("%d ", lowbit((*g)[y][x]) + 1);
+	printf("\n");
+    }
 }
 
 void readgrid(grid_t* g) {
@@ -79,4 +94,6 @@ int main(void) {
 	    printf("0x%03x ", grid[y][x]);
 	printf("\n");
     }
+
+    printsolution(&grid);
 }
