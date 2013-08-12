@@ -1,4 +1,4 @@
-CFLAGS=-O3 -std=c99 -Wall
+CFLAGS=-std=c99 -Wall -O3
 
 qsudoku: qsudoku.o
 

@@ -1,7 +1,9 @@
 #include <stdio.h>
+#include <string.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include <limits.h>
 
 typedef uint16_t elem_t;
 typedef elem_t grid_t[9][9];
@@ -61,7 +63,7 @@ void mark(grid_t* g, int x, int y, int value) {
     (*g)[y][x] = elem;
 }
 
-void printsolution(grid_t* g) {
+void print_solution(grid_t* g) {
     for (int y = 0; y < 9; y++) {
 	for (int x = 0; x < 9; x++)
 	    printf("%d ", lowbit((*g)[y][x]) + 1);
@@ -85,15 +87,56 @@ void readgrid(grid_t* g) {
 	}
 }
 
-int main(void) {
-    grid_t grid;
-    readgrid(&grid);
+void find_candidate(grid_t* g, grid_t *wip, int* px, int* py) {
+    int count = INT_MAX;
+    *px = 0;
+    *py = 0;
+    for (int y = 0; y < 9; y++)
+	for (int x = 0; x < 9; x++) {
+	    if ((*wip)[y][x] == 0) {
+		int bc = bitcount((*g)[y][x]);
+		if (bc > 1 && bc < count) {
+		    count = bc;
+		    *px = x;
+		    *py = y;
+		}
+	    }
+	}
+}
 
-    for (int y = 0; y < 9; y++) {
-	for (int x = 0; x < 9; x++)
-	    printf("0x%03x ", grid[y][x]);
-	printf("\n");
+void search(grid_t* g, grid_t* wip) {
+    enum gridstate s = is_solution(g);
+    if (s == NONE)
+	return;
+    else if (s == SOLUTION) {
+	print_solution(g);
+	exit(0);
     }
 
-    printsolution(&grid);
+    int x; int y;
+    find_candidate(g, wip, &x, &y);
+    elem_t bits = (*g)[y][x];
+
+    grid_t wip2;
+    memcpy(&wip2, wip, sizeof(grid_t));
+    wip2[y][x] = 1;
+
+    for (int i = 0; i < 9; i++)
+	if (((bits >> i) & 0x1) != 0) {
+	    grid_t g2;
+
+	    memcpy(&g2, g, sizeof(grid_t));
+	    mark(&g2, x, y, i);
+	    search(&g2, &wip2);
+	}
+}
+
+int main(void) {
+    grid_t grid;
+    grid_t wip;
+
+    readgrid(&grid);
+    memset(&wip, 0, sizeof(grid_t));
+
+    search(&grid, &wip);
 }
