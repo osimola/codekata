@@ -14,18 +14,18 @@ enum gridstate { NONE, FEASIBLE, SOLUTION };
 int bitcount(uint16_t word) {
     int r = 0;
     for (int i = 0; i < 16; i++) {
-	if ((word & 0x1) != 0)
-	    r++;
-	word >>= 1;
+        if ((word & 0x1) != 0)
+            r++;
+        word >>= 1;
     }
     return r;
 }
 
 int lowbit(uint16_t word) {
     for (int i = 0; i < 16; i++) {
-	if ((word & 0x1) != 0)
-	    return i;
-	word >>= 1;
+        if ((word & 0x1) != 0)
+            return i;
+        word >>= 1;
     }
 
     // Return 16 on all-zeroes
@@ -35,13 +35,13 @@ int lowbit(uint16_t word) {
 enum gridstate is_solution(grid_t* g) {
     enum gridstate result = SOLUTION;
     for (int y = 0; y < 9; y++)
-	for (int x = 0; x < 9; x++) {
-	    int bc = bitcount((*g)[y][x]);
-	    if (bc > 1)
-		result = FEASIBLE;
-	    if (bc == 0)
-		result = NONE;
-	}
+        for (int x = 0; x < 9; x++) {
+            int bc = bitcount((*g)[y][x]);
+            if (bc > 1)
+                result = FEASIBLE;
+            if (bc == 0)
+                result = NONE;
+        }
     return result;
 }
 
@@ -50,41 +50,41 @@ void mark(grid_t* g, int x, int y, int value) {
     elem_t mask = ~elem;
 
     for (int i = 0; i < 9; i++) {
-	(*g)[y][i] &= mask;
-	(*g)[i][x] &= mask;
+        (*g)[y][i] &= mask;
+        (*g)[i][x] &= mask;
     }
 
     int x0 = 3 * (x / 3);
     int y0 = 3 * (y / 3);
 
     for (int dy = 0; dy < 3; dy++)
-	for (int dx = 0; dx < 3; dx++)
-	    (*g)[y0 + dy][x0 + dx] &= mask;
+        for (int dx = 0; dx < 3; dx++)
+            (*g)[y0 + dy][x0 + dx] &= mask;
     (*g)[y][x] = elem;
 }
 
 void print_solution(grid_t* g) {
     for (int y = 0; y < 9; y++) {
-	for (int x = 0; x < 9; x++)
-	    printf("%d ", lowbit((*g)[y][x]) + 1);
-	printf("\n");
+        for (int x = 0; x < 9; x++)
+            printf("%d ", lowbit((*g)[y][x]) + 1);
+        printf("\n");
     }
 }
 
 void readgrid(grid_t* g) {
     char c;
     for (int y = 0; y < 9; y++)
-	for (int x = 0; x < 9; x++)
-	    (*g)[y][x] = EMPTY;
+        for (int x = 0; x < 9; x++)
+            (*g)[y][x] = EMPTY;
 
     for (int y = 0; y < 9; y++)
-	for (int x = 0; x < 9; x++) {
-	    int r = scanf(" %c", &c);
-	    if (r != 1)
-		exit(-1);
-	    if (c >= '1' && c <= '9')
-		mark(g, x, y, c - '1');
-	}
+        for (int x = 0; x < 9; x++) {
+            int r = scanf(" %c", &c);
+            if (r != 1)
+                exit(-1);
+            if (c >= '1' && c <= '9')
+                mark(g, x, y, c - '1');
+        }
 }
 
 void find_candidate(grid_t* g, grid_t *wip, int* px, int* py) {
@@ -92,25 +92,25 @@ void find_candidate(grid_t* g, grid_t *wip, int* px, int* py) {
     *px = 0;
     *py = 0;
     for (int y = 0; y < 9; y++)
-	for (int x = 0; x < 9; x++) {
-	    if ((*wip)[y][x] == 0) {
-		int bc = bitcount((*g)[y][x]);
-		if (bc > 1 && bc < count) {
-		    count = bc;
-		    *px = x;
-		    *py = y;
-		}
-	    }
-	}
+        for (int x = 0; x < 9; x++) {
+            if ((*wip)[y][x] == 0) {
+                int bc = bitcount((*g)[y][x]);
+                if (bc > 1 && bc < count) {
+                    count = bc;
+                    *px = x;
+                    *py = y;
+                }
+            }
+        }
 }
 
 void search(grid_t* g, grid_t* wip) {
     enum gridstate s = is_solution(g);
     if (s == NONE)
-	return;
+        return;
     else if (s == SOLUTION) {
-	print_solution(g);
-	exit(0);
+        print_solution(g);
+        exit(0);
     }
 
     int x; int y;
@@ -122,13 +122,13 @@ void search(grid_t* g, grid_t* wip) {
     wip2[y][x] = 1;
 
     for (int i = 0; i < 9; i++)
-	if (((bits >> i) & 0x1) != 0) {
-	    grid_t g2;
+        if (((bits >> i) & 0x1) != 0) {
+            grid_t g2;
 
-	    memcpy(&g2, g, sizeof(grid_t));
-	    mark(&g2, x, y, i);
-	    search(&g2, &wip2);
-	}
+            memcpy(&g2, g, sizeof(grid_t));
+            mark(&g2, x, y, i);
+            search(&g2, &wip2);
+        }
 }
 
 int main(void) {
