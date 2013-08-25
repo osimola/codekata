@@ -124,7 +124,31 @@ void try_uniqrow(grid_t* g, grid_t *wip, int y) {
                     
                     memcpy(&g2, g, sizeof(grid_t));
                     mark(&g2, x, y, num);
-#                    printf("Found row-uniq: (%d %d), %d\n", x, y, num);
+                    printf("Found row-uniq: (%d %d), %d\n", x, y, num);
+                    search(&g2, wip);
+                }
+            }
+}
+
+void try_uniqcol(grid_t* g, grid_t *wip, int x) {
+    int counts[9] = {0, 0, 0, 0, 0, 0, 0, 0, 0};
+    for (int y = 0; y < 9; y++) {
+        elem_t e = (*g)[y][x];
+        for (int bit = 0; bit < 9; bit++)
+            if (((e >> bit) & 0x1) != 0)
+                counts[bit] += 1;
+    }
+
+    for (int num = 0; num < 9; num++)
+        if (counts[num] == 1)
+            for (int y = 0; y < 9; y++) {
+                elem_t e = (*g)[y][x];
+                if ((e >> num) & 0x1 && bitcount(e) > 1) {
+                    grid_t g2;
+                    
+                    memcpy(&g2, g, sizeof(grid_t));
+                    mark(&g2, x, y, num);
+                    printf("Found col-uniq: (%d %d), %d\n", x, y, num);
                     search(&g2, wip);
                 }
             }
@@ -133,8 +157,8 @@ void try_uniqrow(grid_t* g, grid_t *wip, int y) {
 void try_uniques(grid_t* g, grid_t* wip) {
     for (int y = 0; y < 9; y++)
         try_uniqrow(g, wip, y);
-    /* for (int x = 0; x < 9; x++) */
-    /*     try_uniqcol(g, wip, x); */
+    for (int x = 0; x < 9; x++)
+        try_uniqcol(g, wip, x);
 
     /* for (int y = 0; y < 3; y++) */
     /*     for (int x = 0; x < 3; x++) */
