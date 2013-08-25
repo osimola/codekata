@@ -11,6 +11,8 @@ const elem_t EMPTY = 0x1FF; // 9 lowest bits set
 
 enum gridstate { NONE, FEASIBLE, SOLUTION };
 
+void search(grid_t* g, grid_t* wip);
+
 int bitcount(uint16_t word) {
     int r = 0;
     for (int i = 0; i < 16; i++) {
@@ -104,6 +106,41 @@ void find_candidate(grid_t* g, grid_t *wip, int* px, int* py) {
         }
 }
 
+void try_uniqrow(grid_t* g, grid_t *wip, int y) {
+    int counts[9] = {0, 0, 0, 0, 0, 0, 0, 0, 0};
+    for (int x = 0; x < 9; x++) {
+        elem_t e = (*g)[y][x];
+        for (int bit = 0; bit < 9; bit++)
+            if (((e >> bit) & 0x1) != 0)
+                counts[bit] += 1;
+    }
+
+    for (int num = 0; num < 9; num++)
+        if (counts[num] == 1)
+            for (int x = 0; x < 9; x++) {
+                elem_t e = (*g)[y][x];
+                if ((e >> num) & 0x1 && bitcount(e) > 1) {
+                    grid_t g2;
+                    
+                    memcpy(&g2, g, sizeof(grid_t));
+                    mark(&g2, x, y, num);
+#                    printf("Found row-uniq: (%d %d), %d\n", x, y, num);
+                    search(&g2, wip);
+                }
+            }
+}
+
+void try_uniques(grid_t* g, grid_t* wip) {
+    for (int y = 0; y < 9; y++)
+        try_uniqrow(g, wip, y);
+    /* for (int x = 0; x < 9; x++) */
+    /*     try_uniqcol(g, wip, x); */
+
+    /* for (int y = 0; y < 3; y++) */
+    /*     for (int x = 0; x < 3; x++) */
+    /*         try_uniqsq(g, wip, x , y); */
+}
+
 void search(grid_t* g, grid_t* wip) {
     enum gridstate s = is_solution(g);
     if (s == NONE)
@@ -112,6 +149,8 @@ void search(grid_t* g, grid_t* wip) {
         print_solution(g);
         exit(0);
     }
+
+    try_uniques(g, wip);
 
     int x; int y;
     find_candidate(g, wip, &x, &y);
