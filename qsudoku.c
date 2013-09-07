@@ -9,9 +9,25 @@ typedef uint16_t elem_t;
 typedef elem_t grid_t[9][9];
 const elem_t EMPTY = 0x1FF; // 9 lowest bits set
 
+const int ROWLEN = 80;
+
 enum gridstate { NONE, FEASIBLE, SOLUTION };
 
-void search(grid_t* g, grid_t* wip);
+struct step {
+    char *desc;
+    struct step *next;
+};
+
+struct step* search(grid_t* g, grid_t* wip);
+
+struct step* mkstep(char* type, int n, int x, int y, struct step* next) {
+    struct step* step = malloc(sizeof(struct step));
+    char *desc = malloc(ROWLEN + 1);
+    snprintf(desc, ROWLEN, "%s: %d at (%d, %d)", type, n + 1, x + 1, y + 1);
+    step->desc = desc;
+    step->next = next;
+    return step;
+}
 
 int bitcount(uint16_t word) {
     int r = 0;
@@ -106,7 +122,7 @@ void find_candidate(grid_t* g, grid_t *wip, int* px, int* py) {
         }
 }
 
-void try_uniqrow(grid_t* g, grid_t *wip, int y) {
+struct step* try_uniqrow(grid_t* g, grid_t *wip, int y) {
     int counts[9] = {0, 0, 0, 0, 0, 0, 0, 0, 0};
     for (int x = 0; x < 9; x++) {
         elem_t e = (*g)[y][x];
@@ -124,13 +140,15 @@ void try_uniqrow(grid_t* g, grid_t *wip, int y) {
                     
                     memcpy(&g2, g, sizeof(grid_t));
                     mark(&g2, x, y, num);
-                    printf("Found row-uniq: (%d %d), %d\n", x, y, num);
-                    search(&g2, wip);
+                    struct step *s = search(&g2, wip);
+                    if (s != NULL)
+                        return mkstep("Row unique", num, x, y, s);
                 }
             }
+    return NULL;
 }
 
-void try_uniqcol(grid_t* g, grid_t *wip, int x) {
+struct step* try_uniqcol(grid_t* g, grid_t *wip, int x) {
     int counts[9] = {0, 0, 0, 0, 0, 0, 0, 0, 0};
     for (int y = 0; y < 9; y++) {
         elem_t e = (*g)[y][x];
@@ -148,13 +166,15 @@ void try_uniqcol(grid_t* g, grid_t *wip, int x) {
                     
                     memcpy(&g2, g, sizeof(grid_t));
                     mark(&g2, x, y, num);
-                    printf("Found col-uniq: (%d %d), %d\n", x, y, num);
-                    search(&g2, wip);
+                    struct step* s = search(&g2, wip);
+                    if (s != NULL)
+                        return mkstep("Column unique", num, x, y, s);
                 }
             }
+    return NULL;
 }
 
-void try_uniqsq(grid_t *g, grid_t *wip, int sq_x, int sq_y) {
+struct step* try_uniqsq(grid_t *g, grid_t *wip, int sq_x, int sq_y) {
     const int x0 = sq_x * 3;
     const int y0 = sq_y * 3;
     int counts[9] = {0, 0, 0, 0, 0, 0, 0, 0, 0};
@@ -176,33 +196,57 @@ void try_uniqsq(grid_t *g, grid_t *wip, int sq_x, int sq_y) {
                         
                         memcpy(&g2, g, sizeof(grid_t));
                         mark(&g2, x, y, num);
-                        printf("Found sq-uniq: (%d %d), %d\n", x, y, num);
-                        search(&g2, wip);
+                        struct step* s = search(&g2, wip);
+                        if (s != NULL)
+                            return mkstep("Square unique", num, x, y, s);
                     }
                 }
+    return NULL;
 }
 
-void try_uniques(grid_t* g, grid_t* wip) {
-    for (int y = 0; y < 9; y++)
-        try_uniqrow(g, wip, y);
-    for (int x = 0; x < 9; x++)
-        try_uniqcol(g, wip, x);
-
-    for (int y = 0; y < 3; y++)
-        for (int x = 0; x < 3; x++)
-            try_uniqsq(g, wip, x , y);
-}
-
-void search(grid_t* g, grid_t* wip) {
-    enum gridstate s = is_solution(g);
-    if (s == NONE)
-        return;
-    else if (s == SOLUTION) {
-        print_solution(g);
-        exit(0);
+struct step* try_uniques(grid_t* g, grid_t* wip) {
+    struct step* s = NULL;
+    for (int y = 0; y < 9; y++) {
+        s = try_uniqrow(g, wip, y);
+        if (s != NULL)            
+            return s;
     }
 
-    try_uniques(g, wip);
+    for (int x = 0; x < 9; x++) {
+        s = try_uniqcol(g, wip, x);
+        if (s != NULL)
+            return s;
+    }
+    
+
+    for (int y = 0; y < 3; y++)
+        for (int x = 0; x < 3; x++) {
+            s = try_uniqsq(g, wip, x , y);
+            if (s != NULL)
+                return s;
+        }
+
+    return NULL;
+}
+
+struct step* search(grid_t* g, grid_t* wip) {
+    enum gridstate state = is_solution(g);
+    if (state == NONE)
+        return NULL;
+    else if (state == SOLUTION) {
+        print_solution(g);
+        struct step *s = malloc(sizeof(struct step));
+        char* msg = malloc(8);
+        strcpy(msg, "Ready!");
+        s->desc = msg;
+        s->next = NULL;
+        return s;
+        // exit(0);
+    }
+
+    struct step *s = try_uniques(g, wip);
+    if (s != NULL)
+        return s;
 
     int x; int y;
     find_candidate(g, wip, &x, &y);
@@ -218,8 +262,12 @@ void search(grid_t* g, grid_t* wip) {
 
             memcpy(&g2, g, sizeof(grid_t));
             mark(&g2, x, y, i);
-            search(&g2, &wip2);
+            struct step* s = search(&g2, &wip2);
+            if (s != NULL)
+                return mkstep("Guess", i, x, y, s);
         }
+    
+    return NULL;
 }
 
 int main(void) {
@@ -229,5 +277,12 @@ int main(void) {
     readgrid(&grid);
     memset(&wip, 0, sizeof(grid_t));
 
-    search(&grid, &wip);
+    struct step *s = search(&grid, &wip);
+    while (s != NULL) {
+        printf("%s\n", s->desc);
+        struct step *n = s->next;
+        free(s->desc);
+        free(s);
+        s = n;
+    }
 }
