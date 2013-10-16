@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <limits.h>
+#include <glib.h>
 
 typedef uint16_t elem_t;
 typedef elem_t grid_t[9][9];
@@ -18,7 +19,7 @@ struct step {
     struct step *next;
 };
 
-struct step* search(grid_t* g, grid_t* wip);
+struct step* search(grid_t* g, grid_t* wip, GHashTable* hash);
 
 struct step* mkstep(char* type, int n, int x, int y, struct step* next) {
     struct step* step = malloc(sizeof(struct step));
@@ -105,6 +106,30 @@ void readgrid(grid_t* g) {
         }
 }
 
+guint grid_hash(const void *arg) {
+    const grid_t* g = (const grid_t*) arg;
+    guint rv = 0;
+    for (int y = 0; y < 9; y++)
+        for (int x = 0; x < 9; x++)
+            rv = rv * 31 + (*g)[y][x];
+    return rv;
+}
+
+gboolean grid_equals(const void* g1, const void* g2) {
+    return (memcmp(g1, g2, sizeof(grid_t)) == 0);
+}
+
+bool is_visited(GHashTable* hash, const grid_t* g) {
+    if (g_hash_table_lookup(hash, g))
+        return true;
+    else {
+        grid_t* g2 = malloc(sizeof(grid_t));
+        memcpy(g2, g, sizeof(grid_t));
+        g_hash_table_insert(hash, g2, g2);
+        return false;
+    }
+}
+
 void find_candidate(grid_t* g, grid_t *wip, int* px, int* py) {
     int count = INT_MAX;
     *px = 0;
@@ -122,7 +147,7 @@ void find_candidate(grid_t* g, grid_t *wip, int* px, int* py) {
         }
 }
 
-struct step* try_uniqrow(grid_t* g, grid_t *wip, int y) {
+struct step* try_uniqrow(grid_t* g, grid_t *wip, int y, GHashTable* hash) {
     int counts[9] = {0, 0, 0, 0, 0, 0, 0, 0, 0};
     for (int x = 0; x < 9; x++) {
         elem_t e = (*g)[y][x];
@@ -140,7 +165,7 @@ struct step* try_uniqrow(grid_t* g, grid_t *wip, int y) {
                     
                     memcpy(&g2, g, sizeof(grid_t));
                     mark(&g2, x, y, num);
-                    struct step *s = search(&g2, wip);
+                    struct step *s = search(&g2, wip, hash);
                     if (s != NULL)
                         return mkstep("Row unique", num, x, y, s);
                 }
@@ -148,7 +173,7 @@ struct step* try_uniqrow(grid_t* g, grid_t *wip, int y) {
     return NULL;
 }
 
-struct step* try_uniqcol(grid_t* g, grid_t *wip, int x) {
+struct step* try_uniqcol(grid_t* g, grid_t *wip, int x, GHashTable* hash) {
     int counts[9] = {0, 0, 0, 0, 0, 0, 0, 0, 0};
     for (int y = 0; y < 9; y++) {
         elem_t e = (*g)[y][x];
@@ -166,7 +191,7 @@ struct step* try_uniqcol(grid_t* g, grid_t *wip, int x) {
                     
                     memcpy(&g2, g, sizeof(grid_t));
                     mark(&g2, x, y, num);
-                    struct step* s = search(&g2, wip);
+                    struct step* s = search(&g2, wip, hash);
                     if (s != NULL)
                         return mkstep("Column unique", num, x, y, s);
                 }
@@ -174,7 +199,7 @@ struct step* try_uniqcol(grid_t* g, grid_t *wip, int x) {
     return NULL;
 }
 
-struct step* try_uniqsq(grid_t *g, grid_t *wip, int sq_x, int sq_y) {
+struct step* try_uniqsq(grid_t *g, grid_t *wip, int sq_x, int sq_y, GHashTable* hash) {
     const int x0 = sq_x * 3;
     const int y0 = sq_y * 3;
     int counts[9] = {0, 0, 0, 0, 0, 0, 0, 0, 0};
@@ -196,7 +221,7 @@ struct step* try_uniqsq(grid_t *g, grid_t *wip, int sq_x, int sq_y) {
                         
                         memcpy(&g2, g, sizeof(grid_t));
                         mark(&g2, x, y, num);
-                        struct step* s = search(&g2, wip);
+                        struct step* s = search(&g2, wip, hash);
                         if (s != NULL)
                             return mkstep("Square unique", num, x, y, s);
                     }
@@ -204,16 +229,16 @@ struct step* try_uniqsq(grid_t *g, grid_t *wip, int sq_x, int sq_y) {
     return NULL;
 }
 
-struct step* try_uniques(grid_t* g, grid_t* wip) {
+struct step* try_uniques(grid_t* g, grid_t* wip, GHashTable* hash) {
     struct step* s = NULL;
     for (int y = 0; y < 9; y++) {
-        s = try_uniqrow(g, wip, y);
+        s = try_uniqrow(g, wip, y, hash);
         if (s != NULL)            
             return s;
     }
 
     for (int x = 0; x < 9; x++) {
-        s = try_uniqcol(g, wip, x);
+        s = try_uniqcol(g, wip, x, hash);
         if (s != NULL)
             return s;
     }
@@ -221,7 +246,7 @@ struct step* try_uniques(grid_t* g, grid_t* wip) {
 
     for (int y = 0; y < 3; y++)
         for (int x = 0; x < 3; x++) {
-            s = try_uniqsq(g, wip, x , y);
+            s = try_uniqsq(g, wip, x , y, hash);
             if (s != NULL)
                 return s;
         }
@@ -229,7 +254,10 @@ struct step* try_uniques(grid_t* g, grid_t* wip) {
     return NULL;
 }
 
-struct step* search(grid_t* g, grid_t* wip) {
+struct step* search(grid_t* g, grid_t* wip, GHashTable* hash) {
+    if (is_visited(hash, (const grid_t*)g))
+        return NULL;
+
     enum gridstate state = is_solution(g);
     if (state == NONE)
         return NULL;
@@ -241,10 +269,9 @@ struct step* search(grid_t* g, grid_t* wip) {
         s->desc = msg;
         s->next = NULL;
         return s;
-        // exit(0);
     }
 
-    struct step *s = try_uniques(g, wip);
+    struct step *s = try_uniques(g, wip, hash);
     if (s != NULL)
         return s;
 
@@ -262,7 +289,7 @@ struct step* search(grid_t* g, grid_t* wip) {
 
             memcpy(&g2, g, sizeof(grid_t));
             mark(&g2, x, y, i);
-            struct step* s = search(&g2, &wip2);
+            struct step* s = search(&g2, &wip2, hash);
             if (s != NULL)
                 return mkstep("Guess", i, x, y, s);
         }
@@ -274,10 +301,12 @@ int main(void) {
     grid_t grid;
     grid_t wip;
 
+    GHashTable* hash = g_hash_table_new_full(grid_hash, grid_equals, NULL, free);
+
     readgrid(&grid);
     memset(&wip, 0, sizeof(grid_t));
 
-    struct step *s = search(&grid, &wip);
+    struct step *s = search(&grid, &wip, hash);
     while (s != NULL) {
         printf("%s\n", s->desc);
         struct step *n = s->next;
@@ -285,4 +314,6 @@ int main(void) {
         free(s);
         s = n;
     }
+
+    g_hash_table_destroy(hash);
 }
