@@ -1,0 +1,19 @@
+env = Environment()
+
+# env['CFLAGS'] = '-Wall -Wextra -g --std=c99'
+env['CFLAGS'] = '-Wall -Wextra -O3 --std=c99 -g'
+# env['LINKFLAGS'] = '-pg'
+env.ParseConfig("pkg-config glib-2.0 --cflags --libs")
+
+anagrams_sisterlink_objs = env.Object(['anagrams_sisterlink.c',
+                                       'stringsort.c',
+                                       'sisterlinkedtree.c',
+                                       'memprint.c'])
+
+env.Program('anagrams_sisterlink', anagrams_sisterlink_objs)
+
+anagrams_hash_objs = env.Object(['anagrams_hash.c',
+                                 'stringsort.c',
+                                 'memprint.c'])
+
+env.Program('anagrams_hash', anagrams_hash_objs)
