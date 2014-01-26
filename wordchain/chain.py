@@ -26,7 +26,7 @@ def main(src, target):
 
     while len(heap) > 0:
         dist, path = heappop(heap)
-        nbors = dic.neighbors(path[-1], visited)
+        nbors = dic.neighbors(path[-1]).difference(visited)
         if (target in nbors):
             print(path + (target, ))
             return

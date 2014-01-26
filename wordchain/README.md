@@ -8,12 +8,12 @@ contained in the dictionary.
 The original exercise was with changing letters only, but that didn't
 result in very interesting chains.
 
-There are better ways to implement the string search. It is possible
-that one day I will implement one of those.
+The search trie is self-implemented because why not, and also because
+this is not done on company time. There are ways to optimize it.
 
 Example: 
 
 ```
-python chain.py steely sleety
-('steely', 'steel', 'steep', 'sleep', 'sleepy', 'sleety')
+python chain.py easy crowd
+('easy', 'ease', 'case', 'cased', 'cawed', 'cowed', 'crowed', 'crowd')
 ```
