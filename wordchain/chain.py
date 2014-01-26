@@ -9,18 +9,15 @@ def main(src, target):
     
     dic = Dict()
 
-    if not dic.contains(src):
+    if src not in dic:
         print("Not in dict: " + src)
         return
-    if not dic.contains(target):
+    if target not in dic:
         print("Not in dict: " + target)
         return
     
     visited = set(src)
-
     heap = []
-
-    
     heappush(heap, (editdist(src, target), (src,)))
     visited.add(src)
 
@@ -31,8 +28,8 @@ def main(src, target):
             print(path + (target, ))
             return
         for nbor in nbors:
-            # print (editdist(nbor, target) + len(path), nbor)
             visited.add(nbor)
+            # A* heuristic: at least editdist() steps needed to get to target
             heappush(heap, (editdist(nbor, target) + len(path), path + (nbor,)))
 
 if __name__ == '__main__':

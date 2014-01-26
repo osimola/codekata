@@ -6,12 +6,12 @@ class Dict:
         self.root = _mknode()
         with open(fname, 'r') as f:
             for word in [x.strip() for x in f]:
-                self.insert(word)
+                self.add(word)
 
-    def insert(self, word):
-        _insert(self.root, word)
+    def add(self, word):
+        _add(self.root, word)
 
-    def contains(self, word):
+    def __contains__(self, word):
         return len(self.find(word)) > 0
 
     def neighbors(self, word):
@@ -43,12 +43,12 @@ def editdist(w1, w2):
 def _mknode():
     return collections.defaultdict(_mknode)
 
-def _insert(node, word):
+def _add(node, word):
     # None is the end tag
     if (len(word) == 0):
         node[None] = None
     else:
-        _insert(node[word[0]], word[1:])
+        _add(node[word[0]], word[1:])
 
 def _find(node, suffix, tolerance):
     result = set()
