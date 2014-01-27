@@ -21,15 +21,14 @@ class Dict:
         return _find(self.root, word, tolerance)
     
 def editdist(w1, w2):
-    costs = np.zeros((len(w1), len(w2)), np.int)
-    if (w1[0] != w2[0]):
-        costs[0, 0] = 1
-    for row in range(1, len(w1)):
-        costs[row, 0] = row + costs[0, 0]
-    for col in range(1, len(w2)):
+    costs = np.zeros((len(w1) + 1, len(w2) + 1), np.int)
+    costs[:, 0] = range(len(w1) + 1)
+    costs[0, :] = range(len(w2) + 1)
+        
+    for col in range(1, len(w2) + 1):
         costs[0, col] = costs[0, col - 1] + 1
-        for row in range(1, len(w1)):
-            if w1[row] == w2[col]:
+        for row in range(1, len(w1) + 1):
+            if w1[row-1] == w2[col-1]:
                 costs[row, col] = min(costs[row - 1, col - 1],
                                       costs[row - 1, col] + 1,
                                       costs[row, col - 1] + 1)
@@ -37,8 +36,7 @@ def editdist(w1, w2):
                 costs[row, col] = min(costs[row - 1, col - 1] + 1,
                                       costs[row - 1, col] + 1,
                                       costs[row, col - 1] + 1)
-#    print(costs)
-    return costs[len(w1) - 1, len(w2) - 1]
+    return costs[len(w1), len(w2)]
 
 def _mknode():
     return collections.defaultdict(_mknode)
