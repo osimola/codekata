@@ -64,22 +64,17 @@ def _find(node, suffix, tolerance, visited = None):
     result = set()
 
     if len(suffix) == 0:
-        # Usually tolerance >= 0 would make sense, but here we want only
-        # the entries at specified edit distance
-        if tolerance == 0:
-            if None in node:
-                return ['']
-            else:
-                return []
-        else:
+        if None in node:
+            result.update([''])
             # Added character
+        if tolerance > 0:
             for k in node.keys():
                 if k is not None:
                     result.update(k + subresult
                                   for subresult in _find(node[k], '', tolerance - 1, visited))
 
-            return result
-            
+        return result
+        
 
     # Exact match
     if suffix[0] in node:
