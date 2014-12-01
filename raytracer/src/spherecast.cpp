@@ -202,7 +202,8 @@ void SphereCast::render(uint32_t* buffer, uint32_t time) {
     plat->queue->enqueueWriteBuffer(bLights, false, 0, sizeof(CLLight[1]) * scene->lights.size(), clLights.get());
 
     const size_t pixelCount = clScene->viewportSize.s[0] * clScene->viewportSize.s[1];
-    cl::Buffer rendered(*plat->context, CL_MEM_READ_WRITE, pixelCount * sizeof(cl_float4));
+    cl::Image2D rendered(*plat->context, CL_MEM_READ_WRITE, cl::ImageFormat(CL_RGBA, CL_HALF_FLOAT),
+                       clScene->viewportSize.s[0], clScene->viewportSize.s[1]);
     cl::Buffer output(*plat->context, CL_MEM_WRITE_ONLY, pixelCount * sizeof(cl_int));
 
     plat->renderKernel->setArg(0, bScene);

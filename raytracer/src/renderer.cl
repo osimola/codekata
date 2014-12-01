@@ -25,10 +25,14 @@ float2 intersectDistsToSphere(const float4 rayOrigin, const float4 rayDirection,
                               const float4 center, const float r2);
 float sigmoid(float x);
 
+const sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE
+    | CLK_ADDRESS_CLAMP_TO_EDGE
+    | CLK_FILTER_NEAREST;
+
 __kernel void render(__global const struct CLScene* scene,
                      __global const struct CLSphere* spheres,
                      __global const struct CLLight* lights,
-                     __global float4* output)
+                     __write_only image2d_t output)
 {
     const int pixelX = get_global_id(0);
     const int pixelY = get_global_id(1);
@@ -148,8 +152,7 @@ __kernel void render(__global const struct CLScene* scene,
         rayDirection = intersectSurfNormal * (dot(intersectSurfNormal, rayDirection) * -2) + rayDirection;
     }
 
-    uint outIdx = pixelY * vpSize.x + pixelX;
-    output[outIdx] = color;
+    write_imagef(output, (int2)(pixelX, pixelY), color);
 }
 
 float2 intersectDistsToSphere(const float4 rayOrigin, const float4 rayDirection,
@@ -179,67 +182,18 @@ void toLocal(__local float* target, const __global float* source, int count) {
     }
 }
 
-void toLocalRect(__local float4* target, const __global float4* source, int2 padding, int2 vpSize) {
-    // Making the wild assumption that padding < group size
+void toLocalRect(__local float4* target, __read_only image2d_t source,
+                 const int2 padding, const int2 vpSize) {
+    const int lid0 = get_local_id(0);
+    const int lid1 = get_local_id(1);
+    const int gid0 = get_global_id(1);
+    const int gid1 = get_global_id(1);
 
-    int rowLen = 2 * padding.x + get_local_size(0);
-
-    int lid0 = get_local_id(0);
-    int lid1 = get_local_id(1);
-    int gid0 = get_global_id(1);
-    int gid1 = get_global_id(1);
-
-    const int windowSize = rowLen * (2 * padding.y + get_local_size(1));
-    const int threadCount = get_local_size(0) * get_local_size(1);
-    for (int idx = get_local_size(0) * lid1 + lid0; idx < windowSize; idx += threadCount) {
-        if (idx < windowSize)
-            target[idx] = (float4)(0, 0, 0, 0);
-    }
-
-    int srcLeftXOffset = max(0, (int)get_global_id(0) - padding.y);
-    int srcRightXOffset = min(vpSize.x - 1, (int) get_global_id(0) + (int) get_local_size(0));
-
-    int srcTopYOffset = vpSize.x * max(0, (int)get_global_id(1) - padding.y);
-    int srcCenterYOffset = vpSize.x * get_global_id(1);
-    int srcBottomYOffset = vpSize.x * min(vpSize.y - 1, (int)get_global_id(1) + (int) get_local_size(1));
-
-    int tgtTopYOffset = rowLen * lid1;
-    int tgtCenterYOffset = rowLen * (lid1 + padding.y);
-    int tgtBottomYOffset = rowLen * (lid1 + padding.y + get_local_size(1));
-
-    int tgtCenterXOffset = lid0 + padding.x;
-    int tgtRightXOffset = padding.x + get_local_size(0) + lid0;
-
-    if (lid1 < padding.y) {
-        // Top
-        target[tgtTopYOffset + tgtCenterXOffset] = source[srcTopYOffset + get_global_id(0)];
-        // Bottom
-        target[tgtBottomYOffset + tgtCenterXOffset] = source[srcBottomYOffset + get_global_id(0)];
-
-        if (lid0 < padding.x) {
-            // Top Left
-            target[tgtTopYOffset + lid0] = source[srcTopYOffset + srcLeftXOffset];
-            // Top Right
-            target[tgtTopYOffset + tgtRightXOffset] = source[srcTopYOffset + srcRightXOffset];
-
-            // Bottom Left
-            target[tgtBottomYOffset + lid0] = source[srcBottomYOffset + srcLeftXOffset];
-            // Bottom Right
-            target[tgtBottomYOffset + tgtRightXOffset] = source[srcBottomYOffset + srcRightXOffset];
+    for (int y = 0; y < vpSize.y + 2 * padding.y; y += get_local_size(1)) {
+        for (int x = 0; x < vpSize.x + 2 * padding.x; x += get_local_size(0)) {
+            // Continue?
         }
     }
-    barrier(CLK_LOCAL_MEM_FENCE);
-
-    // Center
-    target[tgtCenterYOffset + tgtCenterXOffset] = source[srcCenterYOffset + get_global_id(0)];
-
-    if (lid0 < padding.x) {
-        // Left
-        target[tgtCenterYOffset + lid0] = source[srcCenterYOffset + srcLeftXOffset];
-        // Right
-        target[tgtCenterYOffset + tgtRightXOffset] = source[srcCenterYOffset + srcRightXOffset];
-    }
-    barrier(CLK_LOCAL_MEM_FENCE);
 }
 
 uint toPixel(float4 rgb) {
@@ -254,7 +208,7 @@ __kernel void postprocess(int2 vpSize,
                           __local float* blurTable,
                           __local float4* window1,
                           __local float4* window2,
-                          __global float4* rendered,
+                          __read_only image2d_t rendered,
                           __write_only __global int* output)
 {
     const int pixelX = get_global_id(0);
@@ -264,7 +218,6 @@ __kernel void postprocess(int2 vpSize,
     const int blurBufferSize = blurWindowD * blurWindowD;
 
     toLocal(blurTable, blurTableGlobal, blurBufferSize);
-    toLocalRect(window1, rendered, (int2)(blurWindowR, blurWindowR), vpSize);
 
     if (pixelX >= vpSize.x || pixelY >= vpSize.y)
         return;
@@ -275,16 +228,15 @@ __kernel void postprocess(int2 vpSize,
     for (int x = get_local_id(0); x < windowRowLen; x += get_local_size(0)) {
         const int idx = get_local_id(1) * windowRowLen + x;
         window2[idx] = 0;
-        const int last = idx + blurWindowD * windowRowLen;
         int blurIdx = 0;
-        for (int win1Idx = idx; win1Idx < last; win1Idx += windowRowLen)
-            window2[idx] += window1[win1Idx] * blurTable[blurIdx++];
+        for (int y = pixelY - blurWindowR; y < pixelY + blurWindowD; y++)
+            window2[idx] += read_imagef(rendered, sampler, (int2)(x - blurWindowR + get_group_id(0) * get_local_size(0), y))
+                * blurTable[blurIdx++];
     }
     barrier(CLK_LOCAL_MEM_FENCE);
 
     const int pixelIdx = pixelY * vpSize.x + pixelX;
-    float4 pixel = rendered[pixelIdx];
-    // float4 pixel = (float4)(0, 0, 0, 0);
+    float4 pixel = read_imagef(rendered, sampler, (int2)(pixelX, pixelY));
 
     int windowIdx = get_local_id(1) * windowRowLen + get_local_id(0);
     for (int dx = 0; dx < blurWindowD; dx++) {
