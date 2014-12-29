@@ -3,7 +3,6 @@
 #include <string>
 #include <cmath>
 #include <iostream>
-#include <iomanip>
 
 #if defined(_MSC_VER)
 #include <cstdio>
@@ -35,16 +34,6 @@ void CLPlat::printInfo(std::ostream &out) {
     for (size_t size: workItemSizes)
         out << " " << size;
     out << std::endl;
-
-    std::vector<cl::ImageFormat> formats;
-    context->getSupportedImageFormats(CL_MEM_READ_WRITE, CL_MEM_OBJECT_IMAGE2D, &formats);
-    std::ios state(NULL);
-    state.copyfmt(out);
-    out << std::hex;
-    for (cl::ImageFormat format: formats)
-        out << "channel order: " << format.image_channel_order
-            << " type: " << format.image_channel_data_type << std::endl;
-    out.copyfmt(state);
 }
 
 CLPlat::CLPlat() {
