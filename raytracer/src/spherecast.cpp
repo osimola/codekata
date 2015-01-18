@@ -49,8 +49,8 @@ public:
     }
 
     CLScene* toCLScene();
-    CLSphere* toCLSpheres();
-    CLLight* toCLLights();
+    std::vector<CLSphere> toCLSpheres();
+    std::vector<CLLight> toCLLights();
 };
 
 struct CLScene {
@@ -90,27 +90,27 @@ CLScene* Scene::toCLScene() {
     return s;
 }
 
-CLSphere* Scene::toCLSpheres() {
-    CLSphere* s = new CLSphere[spheres.size()];
+std::vector<CLSphere> Scene::toCLSpheres() {
+    std::vector<CLSphere> v(spheres.size());
     for (size_t i = 0; i < spheres.size(); i++) {
-        s[i].center = spheres[i].center.toCL();
-        s[i].diffuse = spheres[i].diffuse.toCL();
-        s[i].r = spheres[i].r;
-        s[i].r2 = spheres[i].r2;
-        s[i].gloss = spheres[i].gloss;
+        v[i].center = spheres[i].center.toCL();
+        v[i].diffuse = spheres[i].diffuse.toCL();
+        v[i].r = spheres[i].r;
+        v[i].r2 = spheres[i].r2;
+        v[i].gloss = spheres[i].gloss;
     }
-    return s;
+    return v;
 }
 
-CLLight* Scene::toCLLights() {
-    CLLight* l = new CLLight[lights.size()];
+std::vector<CLLight> Scene::toCLLights() {
+    std::vector<CLLight> v(lights.size());
     for (size_t i = 0; i < lights.size(); i++) {
-        l[i].center =  lights[i].center.toCL();
-        l[i].r = lights[i].r;
-        l[i].r2 = lights[i].r2;
-        l[i].intensity = lights[i].intensity;
+        v[i].center =  lights[i].center.toCL();
+        v[i].r = lights[i].r;
+        v[i].r2 = lights[i].r2;
+        v[i].intensity = lights[i].intensity;
     }
-    return l;
+    return v;
 }
 
 
@@ -193,13 +193,13 @@ void SphereCast::render(uint32_t* buffer, uint32_t time) {
     cl::Buffer bScene(*plat->context, CL_MEM_READ_WRITE, sizeof(CLScene));
     plat->queue->enqueueWriteBuffer(bScene, false, 0, sizeof(CLScene), clScene.get());
 
-    std::unique_ptr<CLSphere> clSpheres(scene->toCLSpheres());
+    std::vector<CLSphere> clSpheres = scene->toCLSpheres();
     cl::Buffer bSpheres(*plat->context, CL_MEM_READ_WRITE, sizeof(CLSphere[1]) * scene->spheres.size());
-    plat->queue->enqueueWriteBuffer(bSpheres, false, 0, sizeof(CLSphere[1]) * scene->spheres.size(), clSpheres.get());
+    plat->queue->enqueueWriteBuffer(bSpheres, false, 0, sizeof(CLSphere[1]) * scene->spheres.size(), clSpheres.data());
 
-    std::unique_ptr<CLLight> clLights(scene->toCLLights());
+    std::vector<CLLight> clLights = scene->toCLLights();
     cl::Buffer bLights(*plat->context, CL_MEM_READ_WRITE, sizeof(CLLight[1]) * scene->lights.size());
-    plat->queue->enqueueWriteBuffer(bLights, false, 0, sizeof(CLLight[1]) * scene->lights.size(), clLights.get());
+    plat->queue->enqueueWriteBuffer(bLights, false, 0, sizeof(CLLight[1]) * scene->lights.size(), clLights.data());
 
     const size_t pixelCount = clScene->viewportSize.s[0] * clScene->viewportSize.s[1];
     cl::Image2D rendered(*plat->context, CL_MEM_READ_WRITE, cl::ImageFormat(CL_RGBA, CL_HALF_FLOAT),
