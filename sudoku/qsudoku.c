@@ -31,13 +31,12 @@ struct step* mkstep(char* type, int n, int x, int y, struct step* next) {
 }
 
 int bitcount(uint16_t word) {
-    int r = 0;
-    for (int i = 0; i < 16; i++) {
-        if ((word & 0x1) != 0)
-            r++;
-        word >>= 1;
-    }
-    return r;
+    // See Hacker's Delight
+    word = (word & 0x5555) + ((word & 0xAAAA) >> 1);
+    word = (word & 0x3333) + ((word & 0xCCCC) >> 2);
+    word = (word & 0x0F0F) + ((word & 0xF0F0) >> 4);
+    word = (word & 0x00FF) + ((word & 0xFF00) >> 8);
+    return word;
 }
 
 int lowbit(uint16_t word) {

@@ -1,12 +1,13 @@
 Sudoku
 ======
 
-A story: Once I was in a C interview in a large-ish software
-company. You may have heard about it. Anyway, the interviewer asked if
-I knew sudoku. I told them that I knew, but I probably couldn't hack
-together a solver in the two hour time slot. So, I was asked to write
-a solution verifier, which I wrote quickly and then we chatted about
-code portability. Later I was told I had failed that one.
+Background story: This one time I was in a C interview in a large-ish
+software company. You may have heard about them. Anyway, the
+interviewer asked if I knew sudoku. I told them that I knew, but added
+that I probably couldn't hack together a solver in the two hour time
+slot. So, I was asked to write a solution verifier, which I wrote
+quickly and then we chatted about code portability. Later I was told I
+had failed that one.
 
 This began as an attempt to write the solver in two hours. The two
 hour version with constraint propagation as the only algorithm even
