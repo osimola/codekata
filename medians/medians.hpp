@@ -3,6 +3,41 @@
 #include <algorithm>
 #include <cassert>
 
+// Calculate the Nth smallest element using partial insertion sort and
+// default < operator. This modifies the order of data array.
+template <typename T> T& pick_isort(T* data, size_t count, size_t K) {
+    assert(K < count);
+    for (size_t i = 1; i <= K; i++) {
+        size_t j = i;
+        T temp(std::move(data[j]));
+        while (j > 0 && temp < data[j - 1]) {
+            data[j] = std::move(data[j-1]);
+            --j;
+        }
+        data[j] = std::move(temp);
+    }
+
+    for (size_t i = K + 1; i < count; i++) {
+        if (data[i] < data[K]) {
+            T temp(std::move(data[i]));
+            size_t j = K;
+            while (j > 0 && temp < data[j - 1]) {
+                data[j] = std::move(data[j-1]);
+                --j;
+            }
+            data[j] = std::move(temp);
+        }
+    }
+
+    return data[K];
+}
+
+// Calculate median using partial insertion sort and default <
+// operator. This modifies the order of data array.
+template <typename T> T& median_isort(T* data, size_t count) {
+    return pick_isort(data, count, (count - 1) / 2);
+}
+
 // Calculate Nth smallest element using partial quicksort and default <
 // operator. This modifies the order of data array.
 template <typename T> T& pick_qsort(T* data, size_t count, size_t K) {
