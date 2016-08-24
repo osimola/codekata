@@ -1,5 +1,8 @@
+# meson
+build
 *.o
 *~
+\#*\#
 .sconsign.dblite
 __pycache__
 *.pyc
