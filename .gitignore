@@ -1,5 +1,7 @@
 # meson
 build
+buildopt
+
 *.o
 *~
 \#*\#
