@@ -16,6 +16,13 @@ If you need to be fast for small arrays, do insertion sort as usual,
 just don't bother to keep array in order past halfway. N^2 time but
 with smaller constant.
 
+How fast is it compared to sorting entire array with std::sort and
+taking the middle element? For large-ish arrays the results are all
+over the map depending on what the CPU cache does. For above L3 cache
+arrays the expected linear vs. N log N can be seen. For small arrays,
+about below 40 elements (which naturally stay in L1) the difference is
+at most 1.5x.
+
 Built with Meson (http://mesonbuild.com), because it's really cool
 these days and everyone should be using it.
 
