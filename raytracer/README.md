@@ -16,13 +16,12 @@ be added and removed with + and - keys.
 ### Compiling and running:
 
 Install Ninja, SDL2 development package, an OpenCL SDK (developed with
-NVidia one) and download trunk version of Meson from
-https://jpakkane.github.io/meson/ (yes, I fixed a bug in Meson for
-this, it's not released yet). Create a separate build directory under
-main directory. Run the following commands in the build directory:
+NVidia one) and Meson (http://mesonbuild.com/, also available through
+PyPI). Create a separate build directory under main directory. Run the
+following commands in the build directory:
 
 ```
-CXXFLAGS=-O3 meson ..
+CXXFLAGS=-O3 meson.py ..
 ninja
 ```
 
