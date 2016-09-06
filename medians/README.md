@@ -14,7 +14,8 @@ middle. This is how you do it:
 
 If you need to be fast for small arrays, do insertion sort as usual,
 just don't bother to keep array in order past halfway. N^2 time but
-with smaller constant.
+with smaller constant. For real use, you'd switch from quicksort to
+insertion at some point.
 
 How fast is it compared to sorting entire array with std::sort and
 taking the middle element? For large-ish arrays the results are all
@@ -28,3 +29,6 @@ these days and everyone should be using it.
 
 Maybe up some day: Sliding windows, which are doable with faster
 linear. Logarithmic, if you have space and time for balanced trees.
+
+For the record, the production code that inspired this uses full
+insertion sort for sliding window and is not CPU bound.

@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <climits>
 
 // Calculate the Nth smallest element using partial insertion sort and
 // default < operator. This modifies the order of data array.
@@ -72,4 +73,34 @@ template <typename T> T& pick_qsort(T* data, size_t count, size_t K) {
 // of data array.
 template <typename T> T& median_qsort(T* data, size_t count) {
     return pick_qsort(data, count, (count - 1) / 2);
+}
+
+// Calculate median using partial radix sort. This modifies the order
+// of data array.
+template <typename T> T& median_radixsort(T* data, size_t count) {
+    size_t K = (count - 1) / 2;
+
+    for (int8_t bit = sizeof(T) * CHAR_BIT - 1; bit >= 0 && count > 1; --bit) {
+        T mask = static_cast<T>(1) << bit;
+        int64_t lo = 0;
+        int64_t hi = count - 1;
+
+        while (lo < hi) {
+            while (lo < count && (data[lo] & mask) == 0)
+                ++lo;
+            while (hi >= 0 && (data[hi] & mask) != 0)
+                --hi;
+            if (lo < hi)
+                std::swap(data[lo], data[hi]);
+        }
+
+        if (K < lo) {
+            count = lo;
+        } else {
+            count -= lo;
+            K -= lo;
+            data += lo;
+        }
+    }
+    return *data;
 }

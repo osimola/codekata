@@ -1,9 +1,10 @@
+#include <iostream>
 #include "medians.hpp"
 #include <chrono>
 #include <vector>
 #include <cstdlib>
 #include <algorithm>
-#include <iostream>
+// #include <iostream>
 
 void compare_large(size_t size) {
     std::vector<int> d1;
@@ -11,22 +12,29 @@ void compare_large(size_t size) {
     for (size_t i = 0; i < size; i++)
         d1.push_back(rand());
     std::vector<int> d2(d1);
+    std::vector<int> d3(d1);
 
     std::chrono::time_point<std::chrono::high_resolution_clock> start,
-        end1, end2;
+        end1, end2, end3;
 
     start = std::chrono::high_resolution_clock::now();
     int result1 = median_qsort(d1.data(), size);
     end1 = std::chrono::high_resolution_clock::now();
     std::sort(d2.begin(), d2.end());
     end2 = std::chrono::high_resolution_clock::now();
+    int result3 = median_radixsort(d3.data(), size);
+    end3 = std::chrono::high_resolution_clock::now();
 
     std::chrono::duration<double> t1 = end1 - start;
     std::chrono::duration<double> t2 = end2 - end1;
+    std::chrono::duration<double> t3 = end3 - end2;
     std::cout << "Size=" << size << " qmedian: " << t1.count()
-              << " std::sort: " << t2.count() << std::endl;
+              << " std::sort: " << t2.count() << " radix median: " << t3.count()
+              << std::endl;
 
     if (result1 != d2[(size - 1) / 2])
+        throw "Result mismatch";
+    if (result1 != result3)
         throw "Result mismatch";
 }
 
@@ -82,6 +90,7 @@ int main(void) {
     compare_large(1 << 20);
     compare_large(1 << 22);
     compare_large(1 << 25);
+    compare_large(1 << 28);
 
     compare_small(5, 1 << 20);
     compare_small(8, 1 << 19);
