@@ -80,7 +80,7 @@ template <typename T> T& median_qsort(T* data, size_t count) {
 template <typename T> T& median_radixsort(T* data, size_t count) {
     size_t K = (count - 1) / 2;
 
-    for (int8_t bit = sizeof(T) * CHAR_BIT - 1; bit >= 0 && count > 1; --bit) {
+    for (int8_t bit = sizeof(T) * CHAR_BIT - 1; bit >= 0; --bit) {
         T mask = static_cast<T>(1) << bit;
         int64_t lo = 0;
         int64_t hi = count - 1;
