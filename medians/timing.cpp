@@ -4,7 +4,6 @@
 #include <vector>
 #include <cstdlib>
 #include <algorithm>
-// #include <iostream>
 
 void compare_large(size_t size) {
     std::vector<int> d1;
@@ -81,6 +80,49 @@ void compare_small(size_t size, size_t count) {
             throw "Result mismatch!";
 }
 
+void compare_sliding(const size_t window, const size_t total) {
+    std::vector<int> d1;
+    d1.reserve(total);
+    for (size_t i = 0; i < total; i++)
+        d1.push_back(rand());
+    std::vector<int> d2(d1);
+
+    std::vector<int> res1, res2;
+    res1.reserve(total);
+    res2.reserve(total);
+
+    std::chrono::time_point<std::chrono::high_resolution_clock> start, end1,
+        end2;
+
+    start = std::chrono::high_resolution_clock::now();
+    {
+        SlidingWindow<int> w(window, d1.data());
+        res1.push_back(w.median());
+        for (size_t i = 0; i < total - window - 1; i++)
+            res1.push_back(w.update(d1[i], d1[i + window]));
+    }
+    end1 = std::chrono::high_resolution_clock::now();
+    {
+        std::vector<int> w;
+        w.reserve(window);
+        for (size_t i = 0; i < total - window; i++) {
+            w.assign(d2.begin() + i, d2.begin() + i + window);
+            res2.push_back(median_qsort(w.data(), window));
+        }
+    }
+    end2 = std::chrono::high_resolution_clock::now();
+
+    std::chrono::duration<double> t1 = end1 - start;
+    std::chrono::duration<double> t2 = end2 - end1;
+    std::cout << "Size=" << total << " window=" << window
+              << " sliding: " << t1.count() << " qmedian: " << t2.count()
+              << std::endl;
+
+    for (size_t i = 0; i < res1.size(); i++)
+        if (res1[i] != res2[i])
+            throw "Result mismatch!";
+}
+
 int main(void) {
     std::srand(0);
 
@@ -90,7 +132,7 @@ int main(void) {
     compare_large(1 << 20);
     compare_large(1 << 22);
     compare_large(1 << 25);
-    compare_large(1 << 28);
+    //    compare_large(1 << 28);
 
     compare_small(5, 1 << 20);
     compare_small(8, 1 << 19);
@@ -98,4 +140,11 @@ int main(void) {
     compare_small(33, 1 << 16);
     compare_small(63, 1 << 15);
     compare_small(256, 1 << 12);
+
+    compare_sliding(5, 1 << 20);
+    compare_sliding(8, 1 << 20);
+    compare_sliding(15, 1 << 20);
+    compare_sliding(33, 1 << 20);
+    compare_sliding(63, 1 << 20);
+    compare_sliding(256, 1 << 20);
 }

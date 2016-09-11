@@ -104,3 +104,62 @@ template <typename T> T& median_radixsort(T* data, size_t count) {
     }
     return *data;
 }
+
+template <typename T> class SlidingWindow {
+  public:
+    SlidingWindow(size_t count, T* data) : count_(count), data_(new T[count]) {
+        for (size_t i = 0; i < count; i++)
+            data_[i] = data[i];
+        std::sort(&data_[0], &data_[count_]);
+    }
+
+    ~SlidingWindow() {
+        delete[] data_;
+    }
+
+    T& median() { return data_[(count_ - 1) / 2]; }
+
+    T& update(const T& out, const T& in) {
+        size_t pos_out = binsearch(out);
+        size_t pos_in = binsearch(in);
+
+        if (pos_in < pos_out) {
+            for (size_t i = pos_out; i > pos_in; i--)
+                data_[i] = std::move(data_[i - 1]);
+            data_[pos_in] = in;
+        } else if (pos_in > pos_out) {
+            for (size_t i = pos_out; i < pos_in - 1; i++)
+                data_[i] = std::move(data_[i + 1]);
+            data_[pos_in - 1] = in;
+        } else {
+            data_[pos_in] = in;
+        }
+        return data_[(count_ - 1) / 2];
+    }
+
+    size_t binsearch(const T& val) {
+        size_t lo = 0;
+        size_t hi = count_;
+
+        while (hi - lo > 1) {
+            size_t pivot = lo + (hi - lo) / 2;
+            assert(pivot < count_);
+            if (data_[pivot] < val)
+                lo = pivot;
+            else if (data_[pivot] > val)
+                hi = pivot;
+            else
+                return pivot;
+        }
+
+        // If no exact match, return insert position
+        if (data_[lo] >= val)
+            return lo;
+        else
+            return hi;
+    }
+
+  private:
+    const size_t count_;
+    T *const data_;
+};

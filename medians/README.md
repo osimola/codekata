@@ -24,11 +24,15 @@ arrays the expected linear vs. N log N can be seen. For small arrays,
 about below 40 elements (which naturally stay in L1) the difference is
 at most 1.5x.
 
+For sliding window, you could just keep the window sorted, find
+insertion and removal points in logarithmic time and move data around
+in linear time. With even distribution of random inputs, the extremes
+of the window seem to stay in place and the entire operation go
+somewhere closer to logarithmic.
+
 Built with Meson (http://mesonbuild.com), because it's really cool
 these days and everyone should be using it.
 
-Maybe up some day: Sliding windows, which are doable with faster
-linear. Logarithmic, if you have space and time for balanced trees.
-
 For the record, the production code that inspired this uses full
-insertion sort for sliding window and is not CPU bound.
+insertion sort for sliding window and is not CPU bound so optimizing
+this corner wouldn't really do anything.
