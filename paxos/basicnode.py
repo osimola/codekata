@@ -18,7 +18,7 @@ class PaxosNode(object):
         self.outgoing = {} # Resource -> accept count, proposal is stored in activeproposals
 
     # Nothing interesting in communication failing between client and
-    # proposer.
+    # learner.
     def get(self, resource):
         if resource in self.cache:
             return self.cache[resource].value

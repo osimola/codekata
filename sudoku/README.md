@@ -17,7 +17,7 @@ fits (turns out most puzzles require only a couple of guesses at
 maximum) and tracing back the solution.
 
 Requires glib for hash map and pkg-config for glib. Compiles with
-Make. Works like this:
+Meson (http://mesonbuild.com/). Works like this:
 
 ```
 ./qsudoku < 5star.txt
