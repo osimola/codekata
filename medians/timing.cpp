@@ -45,26 +45,25 @@ void compare_small(size_t size, size_t count) {
     std::vector<int> d2(d1);
     std::vector<int> d3(d1);
 
-    std::vector<int> res1, res2;
+    std::vector<int> res1, res2, res3;
     res1.reserve(count);
     res2.reserve(count);
+    res3.reserve(count);
 
     std::chrono::time_point<std::chrono::high_resolution_clock> start, end1,
         end2, end3;
 
     start = std::chrono::high_resolution_clock::now();
     for (size_t i = 0; i < count; i++)
-        // median_isort(d1.data() + i * size, size);
         res1.push_back(median_isort(d1.data() + i * size, size));
     end1 = std::chrono::high_resolution_clock::now();
     for (size_t i = 0; i < count; i++)
-        // median_qsort(d2.data() + i * size, size);
         res2.push_back(median_qsort(d2.data() + i * size, size));
     end2 = std::chrono::high_resolution_clock::now();
     for (size_t i = 0; i < count; i++) {
         size_t offset = i * size;
         std::sort(d3.begin() + offset, d3.begin() + offset + size);
-        // res2.push_back(d1[size * count + (size - 1) / 2]);
+        res3.push_back(d3[offset + (size - 1) / 2]);
     }
     end3 = std::chrono::high_resolution_clock::now();
 
@@ -72,11 +71,11 @@ void compare_small(size_t size, size_t count) {
     std::chrono::duration<double> t2 = end2 - end1;
     std::chrono::duration<double> t3 = end3 - end2;
     std::cout << "Size=" << size << " count=" << count
-              << " imedian: " << t1.count() << " qmedian: " << t2.count()
-              << " std::sort: " << t3.count() << std::endl;
+              << " imedian: " << t1.count() / count << " qmedian: " << t2.count() / count
+              << " std::sort: " << t3.count() / count << std::endl;
 
     for (size_t i = 0; i < res1.size(); i++)
-        if (res1[i] != res2[i])
+        if (res1[i] != res2[i] || res1[i] != res3[i])
             throw "Result mismatch!";
 }
 
@@ -140,6 +139,8 @@ int main(void) {
     compare_small(33, 1 << 16);
     compare_small(63, 1 << 15);
     compare_small(256, 1 << 12);
+    compare_small(512, 1 << 11);
+    compare_small(1024, 1 << 10);
 
     compare_sliding(5, 1 << 20);
     compare_sliding(8, 1 << 20);
