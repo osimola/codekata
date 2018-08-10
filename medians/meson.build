@@ -1,6 +1,6 @@
 project('medians', 'cpp')
 add_global_arguments('-std=c++11', language : 'cpp')
-gtest_dep = dependency('gtest')
-test_exe = executable('unittest', ['tests.cpp'], dependencies: gtest_dep)
+gtest_sp = subproject('gtest')
+test_exe = executable('unittest', ['tests.cpp'], dependencies: gtest_sp.get_variable('gtest_main_dep'))
 timing_exe = executable('timing', ['timing.cpp'])
 test('unittest', test_exe)

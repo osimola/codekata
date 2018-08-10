@@ -166,8 +166,3 @@ TEST(SlidingWindow, overwrites) {
     ASSERT_EQ(40, window.update(50, 50));
     ASSERT_EQ(40, window.update(99, 99));
  }
-
- int main(int argc, char** argv) {
-     ::testing::InitGoogleTest(&argc, argv);
-     return RUN_ALL_TESTS();
-}
