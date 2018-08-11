@@ -39,6 +39,29 @@ template <typename T> T& median_isort(T* data, size_t count) {
     return pick_isort(data, count, (count - 1) / 2);
 }
 
+// Calculate the Nth smallest element using insertion sort and default
+// < operator. This modifies the order of data array.
+template <typename T> T& pick_isort_full(T* data, size_t count, size_t K) {
+    assert(K < count);
+    for (size_t i = 1; i < count; i++) {
+        size_t j = i;
+        T temp(std::move(data[j]));
+        while (j > 0 && temp < data[j - 1]) {
+            data[j] = std::move(data[j-1]);
+            --j;
+        }
+        data[j] = std::move(temp);
+    }
+
+    return data[K];
+}
+
+// Calculate median using partial insertion sort and default <
+// operator. This modifies the order of data array.
+template <typename T> T& median_isort_full(T* data, size_t count) {
+    return pick_isort_full(data, count, (count - 1) / 2);
+}
+
 // Calculate Nth smallest element using partial quicksort and default <
 // operator. This modifies the order of data array.
 template <typename T> T& pick_qsort(T* data, size_t count, size_t K) {
@@ -82,13 +105,13 @@ template <typename T> T& median_radixsort(T* data, size_t count) {
 
     for (int8_t bit = sizeof(T) * CHAR_BIT - 1; bit >= 0; --bit) {
         T mask = static_cast<T>(1) << bit;
-        int64_t lo = 0;
-        int64_t hi = count - 1;
+        size_t lo = 0;
+        size_t hi = count - 1;
 
         while (lo < hi) {
             while (lo < count && (data[lo] & mask) == 0)
                 ++lo;
-            while (hi >= 0 && (data[hi] & mask) != 0)
+            while (hi > 0 && (data[hi] & mask) != 0)
                 --hi;
             if (lo < hi)
                 std::swap(data[lo], data[hi]);

@@ -44,38 +44,46 @@ void compare_small(size_t size, size_t count) {
         d1.push_back(rand());
     std::vector<int> d2(d1);
     std::vector<int> d3(d1);
+    std::vector<int> d4(d1);
 
-    std::vector<int> res1, res2, res3;
+    std::vector<int> res1, res2, res3, res4;
     res1.reserve(count);
     res2.reserve(count);
     res3.reserve(count);
+    res4.reserve(count);
 
     std::chrono::time_point<std::chrono::high_resolution_clock> start, end1,
-        end2, end3;
+        end2, end3, end4;
 
     start = std::chrono::high_resolution_clock::now();
     for (size_t i = 0; i < count; i++)
         res1.push_back(median_isort(d1.data() + i * size, size));
     end1 = std::chrono::high_resolution_clock::now();
     for (size_t i = 0; i < count; i++)
-        res2.push_back(median_qsort(d2.data() + i * size, size));
+        res2.push_back(median_isort_full(d2.data() + i * size, size));
     end2 = std::chrono::high_resolution_clock::now();
+    for (size_t i = 0; i < count; i++)
+        res3.push_back(median_qsort(d3.data() + i * size, size));
+    end3 = std::chrono::high_resolution_clock::now();
     for (size_t i = 0; i < count; i++) {
         size_t offset = i * size;
-        std::sort(d3.begin() + offset, d3.begin() + offset + size);
-        res3.push_back(d3[offset + (size - 1) / 2]);
+        std::sort(d4.begin() + offset, d4.begin() + offset + size);
+        res4.push_back(d4[offset + (size - 1) / 2]);
     }
-    end3 = std::chrono::high_resolution_clock::now();
+    end4 = std::chrono::high_resolution_clock::now();
 
     std::chrono::duration<double> t1 = end1 - start;
     std::chrono::duration<double> t2 = end2 - end1;
     std::chrono::duration<double> t3 = end3 - end2;
+    std::chrono::duration<double> t4 = end4 - end3;
     std::cout << "Size=" << size << " count=" << count
-              << " imedian: " << t1.count() / count << " qmedian: " << t2.count() / count
-              << " std::sort: " << t3.count() / count << std::endl;
+              << " imedian: " << t1.count() / count
+              << " imedian_full: " << t2.count() / count
+              << " qmedian: " << t3.count() / count
+              << " std::sort: " << t4.count() / count << std::endl;
 
     for (size_t i = 0; i < res1.size(); i++)
-        if (res1[i] != res2[i] || res1[i] != res3[i])
+        if (res1[i] != res2[i] || res1[i] != res3[i] || res1[i] != res4[i])
             throw "Result mismatch!";
 }
 
