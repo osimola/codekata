@@ -128,6 +128,22 @@ template <typename T> T& median_radixsort(T* data, size_t count) {
     return *data;
 }
 
+// Calculate median using bubblesort. This modifies the order of data
+// array. This is terrible.
+template <typename T> T& median_bubblesort(T* data, size_t count) {
+    bool mod;
+    do {
+        mod = false;
+        for (size_t i = 0; i < count - 1; i++) {
+            if (!(data[i] < data[i + 1])) {
+                std::swap(data[i], data[i + 1]);
+                mod = true;
+            }
+        }
+    } while (mod);
+    return data[(count - 1) / 2];
+}
+
 template <typename T> class SlidingWindow {
   public:
     SlidingWindow(size_t count, T* data) : count_(count), data_(new T[count]) {

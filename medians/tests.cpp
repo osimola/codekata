@@ -155,6 +155,44 @@ TEST(RadixsortMedian, all_ones) {
     ASSERT_EQ(1, median_radixsort(data, 4));
 }
 
+TEST(BubblesortMedian, in_order_even) {
+    int data[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 21};
+    ASSERT_EQ(5, median_bubblesort(data, 10));
+}
+
+TEST(BubblesortMedian, reverse_order_even) {
+    int data[] = {21, 9, 8, 7, 6, 5, 4, 3, 2, 1};
+    ASSERT_EQ(5, median_bubblesort(data, 10));
+}
+
+TEST(BubblesortMedian, in_order_odd) {
+    // AKA direct hit at pivot
+    int data[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 21};
+    ASSERT_EQ(5, median_bubblesort(data, 10));
+}
+
+TEST(BubblesortMedian, median_last_even) {
+    int data[] = {1, 2, 3, 4, 6, 7, 8, 9, 21, 5};
+    ASSERT_EQ(5, median_bubblesort(data, 10));
+}
+
+TEST(BubblesortMedian, median_last_odd) {
+    int data[] = {1, 2, 3, 4, 6, 7, 8, 21, 5};
+    ASSERT_EQ(5, median_bubblesort(data, 9));
+}
+
+TEST(BubblesortMedian, median_first_even) {
+    int data[] = {5, 1, 2, 3, 4, 6, 7, 8, 9, 21};
+    ASSERT_EQ(5, median_bubblesort(data, 10));
+}
+
+TEST(BubblesortMedian, median_first_odd) {
+    int data[] = {5, 1, 2, 3, 4, 6, 7, 8, 21};
+    ASSERT_EQ(5, median_bubblesort(data, 9));
+}
+
+
+
 TEST(SlidingWindow, binsearch) {
     uint8_t data[] = {10, 20, 30, 40, 50};
     SlidingWindow<uint8_t> window(5, data);

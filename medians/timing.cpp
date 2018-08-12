@@ -45,15 +45,17 @@ void compare_small(size_t size, size_t count) {
     std::vector<int> d2(d1);
     std::vector<int> d3(d1);
     std::vector<int> d4(d1);
+    std::vector<int> d5(d1);
 
-    std::vector<int> res1, res2, res3, res4;
+    std::vector<int> res1, res2, res3, res4, res5;
     res1.reserve(count);
     res2.reserve(count);
     res3.reserve(count);
     res4.reserve(count);
+    res5.reserve(count);
 
     std::chrono::time_point<std::chrono::high_resolution_clock> start, end1,
-        end2, end3, end4;
+        end2, end3, end4, end5;
 
     start = std::chrono::high_resolution_clock::now();
     for (size_t i = 0; i < count; i++)
@@ -71,19 +73,23 @@ void compare_small(size_t size, size_t count) {
         res4.push_back(d4[offset + (size - 1) / 2]);
     }
     end4 = std::chrono::high_resolution_clock::now();
+    for (size_t i = 0; i < count; i++)
+        res5.push_back(median_bubblesort(d5.data() + i * size, size));
+    end5 = std::chrono::high_resolution_clock::now();
 
     std::chrono::duration<double> t1 = end1 - start;
     std::chrono::duration<double> t2 = end2 - end1;
     std::chrono::duration<double> t3 = end3 - end2;
     std::chrono::duration<double> t4 = end4 - end3;
-    std::cout << "Size=" << size << " count=" << count
-              << " imedian: " << t1.count() / count
+    std::chrono::duration<double> t5 = end5 - end4;
+    std::cout << "Size=" << size << " imedian: " << t1.count() / count
               << " imedian_full: " << t2.count() / count
               << " qmedian: " << t3.count() / count
-              << " std::sort: " << t4.count() / count << std::endl;
+              << " std::sort: " << t4.count() / count
+              << " bubble: " << t5.count() / count << std::endl;
 
     for (size_t i = 0; i < res1.size(); i++)
-        if (res1[i] != res2[i] || res1[i] != res3[i] || res1[i] != res4[i])
+        if (res1[i] != res2[i] || res1[i] != res3[i] || res1[i] != res4[i] || res1[i] != res5[i])
             throw "Result mismatch!";
 }
 
