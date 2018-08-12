@@ -38,6 +38,7 @@ void compare_large(size_t size) {
 }
 
 void compare_small(size_t size, size_t count) {
+    static const size_t testCount = 5;
     std::vector<int> d1;
     d1.reserve(size * count);
     for (size_t i = 0; i < size * count; i++)
@@ -47,50 +48,46 @@ void compare_small(size_t size, size_t count) {
     std::vector<int> d4(d1);
     std::vector<int> d5(d1);
 
-    std::vector<int> res1, res2, res3, res4, res5;
-    res1.reserve(count);
-    res2.reserve(count);
-    res3.reserve(count);
-    res4.reserve(count);
-    res5.reserve(count);
+    std::vector<int> res[testCount];
+    for (size_t i = 0; i < testCount; i++)
+        res[i].reserve(count);
 
-    std::chrono::time_point<std::chrono::high_resolution_clock> start, end1,
-        end2, end3, end4, end5;
+    std::chrono::time_point<std::chrono::high_resolution_clock> start, end[testCount];
 
     start = std::chrono::high_resolution_clock::now();
     for (size_t i = 0; i < count; i++)
-        res1.push_back(median_isort(d1.data() + i * size, size));
-    end1 = std::chrono::high_resolution_clock::now();
+        res[0].push_back(median_isort(d1.data() + i * size, size));
+    end[0] = std::chrono::high_resolution_clock::now();
     for (size_t i = 0; i < count; i++)
-        res2.push_back(median_isort_full(d2.data() + i * size, size));
-    end2 = std::chrono::high_resolution_clock::now();
+        res[1].push_back(median_isort_full(d2.data() + i * size, size));
+    end[1] = std::chrono::high_resolution_clock::now();
     for (size_t i = 0; i < count; i++)
-        res3.push_back(median_qsort(d3.data() + i * size, size));
-    end3 = std::chrono::high_resolution_clock::now();
+        res[2].push_back(median_qsort(d3.data() + i * size, size));
+    end[2] = std::chrono::high_resolution_clock::now();
     for (size_t i = 0; i < count; i++) {
         size_t offset = i * size;
         std::sort(d4.begin() + offset, d4.begin() + offset + size);
-        res4.push_back(d4[offset + (size - 1) / 2]);
+        res[3].push_back(d4[offset + (size - 1) / 2]);
     }
-    end4 = std::chrono::high_resolution_clock::now();
+    end[3] = std::chrono::high_resolution_clock::now();
     for (size_t i = 0; i < count; i++)
-        res5.push_back(median_bubblesort(d5.data() + i * size, size));
-    end5 = std::chrono::high_resolution_clock::now();
+        res[4].push_back(median_bubblesort(d5.data() + i * size, size));
+    end[4] = std::chrono::high_resolution_clock::now();
 
-    std::chrono::duration<double> t1 = end1 - start;
-    std::chrono::duration<double> t2 = end2 - end1;
-    std::chrono::duration<double> t3 = end3 - end2;
-    std::chrono::duration<double> t4 = end4 - end3;
-    std::chrono::duration<double> t5 = end5 - end4;
-    std::cout << "Size=" << size << " imedian: " << t1.count() / count
-              << " imedian_full: " << t2.count() / count
-              << " qmedian: " << t3.count() / count
-              << " std::sort: " << t4.count() / count
-              << " bubble: " << t5.count() / count << std::endl;
+    std::chrono::duration<double> t[] = {end[0] - start, end[1] - end[0],
+                                         end[2] - end[1], end[3] - end[2],
+                                         end[4] - end[3]};
 
-    for (size_t i = 0; i < res1.size(); i++)
-        if (res1[i] != res2[i] || res1[i] != res3[i] || res1[i] != res4[i] || res1[i] != res5[i])
-            throw "Result mismatch!";
+    std::cout << "Size=" << size << " imedian: " << t[0].count() / count
+              << " imedian_full: " << t[1].count() / count
+              << " qmedian: " << t[2].count() / count
+              << " std::sort: " << t[3].count() / count
+              << " bubble: " << t[4].count() / count << std::endl;
+
+    for (size_t i = 0; i < res[0].size(); i++)
+        for (size_t r = 1; r < testCount; r++)
+            if (res[0][i] != res[r][i])
+                throw "Result mismatch!";
 }
 
 void compare_sliding(const size_t window, const size_t total) {
