@@ -4,28 +4,47 @@
 #include <cassert>
 #include <climits>
 
+#ifndef INC_COMPARISONS
+#define INC_COMPARISONS
+#endif
+
+#ifndef INC_MEMOPS
+#define INC_MEMOPS
+#endif
+
 // Calculate the Nth smallest element using partial insertion sort and
 // default < operator. This modifies the order of data array.
 template <typename T> T& pick_isort(T* data, size_t count, size_t K) {
     assert(K < count);
     for (size_t i = 1; i <= K; i++) {
         size_t j = i;
+        INC_MEMOPS;
         T temp(std::move(data[j]));
+        INC_COMPARISONS;
         while (j > 0 && temp < data[j - 1]) {
+            INC_COMPARISONS;
+            INC_MEMOPS;
             data[j] = std::move(data[j-1]);
             --j;
         }
+        INC_MEMOPS;
         data[j] = std::move(temp);
     }
 
     for (size_t i = K + 1; i < count; i++) {
+        INC_COMPARISONS;
         if (data[i] < data[K]) {
+            INC_MEMOPS;
             T temp(std::move(data[i]));
             size_t j = K;
+            INC_COMPARISONS;
             while (j > 0 && temp < data[j - 1]) {
+                INC_MEMOPS;
+                INC_COMPARISONS;
                 data[j] = std::move(data[j-1]);
                 --j;
             }
+            INC_MEMOPS;
             data[j] = std::move(temp);
         }
     }
@@ -45,11 +64,16 @@ template <typename T> T& pick_isort_full(T* data, size_t count, size_t K) {
     assert(K < count);
     for (size_t i = 1; i < count; i++) {
         size_t j = i;
+        INC_MEMOPS;
         T temp(std::move(data[j]));
+        INC_COMPARISONS;
         while (j > 0 && temp < data[j - 1]) {
+            INC_COMPARISONS;
+            INC_MEMOPS;
             data[j] = std::move(data[j-1]);
             --j;
         }
+        INC_MEMOPS;
         data[j] = std::move(temp);
     }
 
@@ -135,7 +159,9 @@ template <typename T> T& median_bubblesort(T* data, size_t count) {
     do {
         mod = false;
         for (size_t i = 0; i < count - 1; i++) {
+            INC_COMPARISONS;
             if (!(data[i] < data[i + 1])) {
+                INC_MEMOPS;
                 std::swap(data[i], data[i + 1]);
                 mod = true;
             }
