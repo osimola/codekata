@@ -1,5 +1,8 @@
 project('cachebenchmarks', 'cpp')
-add_global_arguments('-std=c++11', language : 'cpp')
+add_global_arguments('-std=c++17', language : 'cpp')
 gbench_sp = subproject('google-benchmark')
-timing_exe = executable('cache_timing', ['timing.cpp', 'countutils.cpp'],
-           dependencies: gbench_sp.get_variable('google_benchmark_main_dep'))
+ctiming_exe = executable('cache_timing', ['cache_timing.cpp'],
+           dependencies: gbench_sp.get_variable('google_benchmark_dep'))
+
+btiming_exe = executable('branch_timing', ['branch_timing.cpp', 'countutils.cpp'],
+           dependencies: gbench_sp.get_variable('google_benchmark_dep'))
