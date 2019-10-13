@@ -9,14 +9,17 @@ implementation in terms of time and memory requirements.
 
 It turned out that on a Core 2 Duo machine the hash map was clearly
 faster way, but the improved branch prediction on Core i5 makes the
-speeds comparable. Despite the tricks with block allocation, hash map
-runs in slightly less memory.
+speeds comparable. Memory use has also evolved, back when I wrote this
+hashmap used less memory but now the trie uses less.
 
-Built with SCons, because I was kind of enthusiastic about it at the time.
+
+Built with Meson (https://mesonbuild.com/)
 
 Compiling and running example:
 
 ```
-scons -j 4
+mkdir buildopt; cd buildopt
+meson --buildtype release ..
+ninja
 time ./anagrams_sisterlink < /usr/share/dict/words
 ```

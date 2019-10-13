@@ -12,10 +12,7 @@ struct slt_tree *readdata() {
     char sorted[buflen];
     struct slt_tree *tree = slt_new();
 
-    while (1) {
-        fgets(buf, buflen, stdin);
-        if (feof(stdin))
-            break;
+    while (fgets(buf, buflen, stdin)) {
         int len = strlen(buf);
         if (strlen(buf) == buflen - 1) {
             fprintf(stderr, "Unexpectedly long line. Increase buflen.");
@@ -36,6 +33,5 @@ int main(void) {
     struct slt_tree *tree = readdata();
     slt_print_anagrams(tree);
     memprint();
-    // slt_population(tree);
     return 0;
 }

@@ -11,10 +11,7 @@ GHashTable *readdata() {
     char buf[buflen];
     GHashTable *table = g_hash_table_new(g_str_hash, g_str_equal);
 
-    while (1) {
-        fgets(buf, buflen, stdin);
-        if (feof(stdin))
-            break;
+    while (fgets(buf, buflen, stdin)) {
         int len = strlen(buf);
         if (strlen(buf) == buflen - 1) {
             fprintf(stderr, "Unexpectedly long line. Increase buflen.");

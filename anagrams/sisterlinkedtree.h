@@ -12,6 +12,5 @@ void slt_add(struct slt_tree *tree,
 
 void slt_print(const struct slt_node *node);
 void slt_print_anagrams(const struct slt_tree *tree);
-void slt_population(const struct slt_tree *tree);
-#endif
 
+#endif
