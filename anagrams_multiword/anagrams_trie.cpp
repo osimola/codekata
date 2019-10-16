@@ -1,5 +1,6 @@
 #include <iostream>
 
+#include "format.hpp"
 #include "trie.hpp"
 
 int main(const int argc, const char* argv[]) {
@@ -10,9 +11,7 @@ int main(const int argc, const char* argv[]) {
 
     trie::traverse(&root, [](auto& node) {
         if (node.values.size() > 1) {
-            for (size_t i = 0; i < node.values.size() - 1; ++i)
-                std::cout << node.values[i] << ", ";
-            std::cout << node.values[node.values.size() - 1] << std::endl;
+            std::cout << node.values << std::endl;
         }
     });
 }

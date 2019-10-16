@@ -3,6 +3,7 @@
 #include <unordered_map>
 #include <vector>
 
+#include "format.hpp"
 #include "trie.hpp"
 
 using CharCounts = std::unordered_map<char, uint8_t>;
@@ -19,10 +20,7 @@ struct ResultItem {
 void printResult(const ResultItem& resultRef) {
     auto result = &resultRef;
     while (result) {
-        std::cout << "[";
-        for (const auto& value: result->leaf.values)
-            std::cout << value << " ";
-        std::cout << "] ";
+        std::cout << "[" << result->leaf.values << "] ";
         result = result->prev;
     }
     std::cout << std::endl;
@@ -35,7 +33,7 @@ std::ostream& operator<<(std::ostream& output, const CharCounts& counts) {
     return output;
 }
 
-void search(const trie::Node& root, CharCounts& counts, const trie::Node* node,
+void search(trie::Node& root, CharCounts& counts, trie::Node* node,
             const ResultItem* prev) {
     while (node) {
         if (counts.count(node->key)) {
@@ -47,11 +45,12 @@ void search(const trie::Node& root, CharCounts& counts, const trie::Node* node,
             } else {
                 if (node->firstChild != nullptr)
                     search(root, counts, node->firstChild, prev);
-                if (!node->values.empty() && (!prev || !prev->contains(node))) {
+                if (!node->values.empty()) {
                     ResultItem r = {*node, prev};
                     search(root, counts, &root, &r);
                 }
             }
+
             ++counts[node->key];
         }
 
@@ -59,7 +58,7 @@ void search(const trie::Node& root, CharCounts& counts, const trie::Node* node,
     }
 }
 
-void search(const trie::Node& root, CharCounts& counts) {
+void search(trie::Node& root, CharCounts& counts) {
     return search(root, counts, &root, nullptr);
 }
 

@@ -5,6 +5,8 @@
 #include <unordered_map>
 #include <vector>
 
+#include "format.hpp"
+
 int main(const int argc, const char* argv[]) {
     if (argc < 2)
         return 1;
@@ -27,9 +29,7 @@ int main(const int argc, const char* argv[]) {
     for (const auto& entry : map) {
         if (entry.second.size() > 1) {
             for (size_t i = 0; i < entry.second.size() - 1; ++i)
-                std::cout << entry.second[i] << ", ";
-            std::cout << entry.second[entry.second.size() - 1]
-                      << std::endl;
+                std::cout << entry.second << std::endl;
         }
     }
 

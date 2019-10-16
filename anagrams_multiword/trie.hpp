@@ -10,7 +10,6 @@ struct Node {
     Node* firstChild = nullptr;
     std::vector<std::string> values;
     char key;
-    bool visited = false;
 
     Node(char key) : key(key) {}
 };
