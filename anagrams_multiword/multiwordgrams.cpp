@@ -33,7 +33,7 @@ std::ostream& operator<<(std::ostream& output, const CharCounts& counts) {
     return output;
 }
 
-void search(trie::Node& root, CharCounts& counts, trie::Node* node,
+void search(const trie::Node& root, CharCounts& counts, const trie::Node* node,
             const ResultItem* prev) {
     while (node) {
         if (counts.count(node->key)) {
@@ -58,7 +58,7 @@ void search(trie::Node& root, CharCounts& counts, trie::Node* node,
     }
 }
 
-void search(trie::Node& root, CharCounts& counts) {
+void search(const trie::Node& root, CharCounts& counts) {
     return search(root, counts, &root, nullptr);
 }
 
