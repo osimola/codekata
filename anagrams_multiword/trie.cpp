@@ -27,6 +27,9 @@ Node constructSortedPrefixes(std::string filename) {
     trie::Node root{static_cast<char>(input.peek())};
 
     while (std::getline(input, line)) {
+        if (line.size() < 3)
+            continue;
+
         std::string value = line;
         std::string sorted = line;
         std::sort(sorted.begin(), sorted.end());
