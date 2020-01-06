@@ -1,5 +1,4 @@
-project('anagrams', 'c')
-add_global_arguments('-std=c99', language : 'c')
+project('anagrams', 'c', default_options : ['c_std=c99'])
 
 glib_dep = dependency('glib-2.0')
 

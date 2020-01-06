@@ -1,5 +1,4 @@
-project('anagrams', 'cpp')
-add_global_arguments('-std=c++17', language : 'cpp')
+project('anagrams', 'cpp', default_options : ['cpp_std=c++17'])
 
 multiwordgrams = executable('multiwordgrams',
         'multiwordgrams.cpp',

@@ -1,5 +1,4 @@
-project('medians', 'cpp')
-add_global_arguments('-std=c++11', language : 'cpp')
+project('medians', 'cpp', default_options : ['cpp_std=c++17'])
 gtest_sp = subproject('gtest')
 test_exe = executable('unittest', ['tests.cpp'], dependencies: gtest_sp.get_variable('gtest_main_dep'))
 timing_exe = executable('timing', ['timing.cpp'])
