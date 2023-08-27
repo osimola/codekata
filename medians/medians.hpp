@@ -153,7 +153,7 @@ template <typename T> T& median_radixsort(T* data, size_t count) {
 }
 
 // Calculate median using bubblesort. This modifies the order of data
-// array. This is terrible.
+// array. This is terrible on purpose.
 template <typename T> T& median_bubblesort(T* data, size_t count) {
     bool mod;
     do {

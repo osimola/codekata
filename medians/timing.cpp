@@ -12,28 +12,52 @@ void compare_large(size_t size) {
         d1.push_back(rand());
     std::vector<int> d2(d1);
     std::vector<int> d3(d1);
+    std::vector<int> d4(d1);
+    std::vector<int> d5(d1);
 
     std::chrono::time_point<std::chrono::high_resolution_clock> start,
-        end1, end2, end3;
+        end1, end2, end3, end4, end5;
+
+    const auto middleoffset = (d1.size() - 1) / 2;
 
     start = std::chrono::high_resolution_clock::now();
     int result1 = median_qsort(d1.data(), size);
     end1 = std::chrono::high_resolution_clock::now();
+
     std::sort(d2.begin(), d2.end());
     end2 = std::chrono::high_resolution_clock::now();
+
     int result3 = median_radixsort(d3.data(), size);
     end3 = std::chrono::high_resolution_clock::now();
+
+    auto d4middle = d4.begin() + middleoffset;
+    std::nth_element(d4.begin(), d4middle, d4.end());
+    int result4 = *d4middle;
+    end4 = std::chrono::high_resolution_clock::now();
+
+    auto d5middle = d5.begin() + middleoffset;
+    std::partial_sort(d5.begin(), d5middle + 1, d5.end());
+    int result5 = *d5middle;
+    end5 = std::chrono::high_resolution_clock::now();
 
     std::chrono::duration<double> t1 = end1 - start;
     std::chrono::duration<double> t2 = end2 - end1;
     std::chrono::duration<double> t3 = end3 - end2;
+    std::chrono::duration<double> t4 = end4 - end3;
+    std::chrono::duration<double> t5 = end5 - end4;
+
     std::cout << "Size=" << size << " qmedian: " << t1.count()
               << " std::sort: " << t2.count() << " radix median: " << t3.count()
-              << std::endl;
+              << " std::nth_element " << t4.count()
+              << " std::partial_sort " << t5.count() << std::endl;
 
-    if (result1 != d2[(size - 1) / 2])
+    if (result1 != d2[middleoffset])
         throw "Result mismatch";
     if (result1 != result3)
+        throw "Result mismatch";
+    if (result1 != result4)
+        throw "Result mismatch";
+    if (result1 != result5)
         throw "Result mismatch";
 }
 
